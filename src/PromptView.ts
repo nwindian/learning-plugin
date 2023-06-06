@@ -57,11 +57,6 @@ export class PromptView extends ItemView {
       <label for="option4">4</label>\
       </form>'
 
-    
-
-
-
-    
     try { 
       this.file = await this.app.vault.create(fileName, content)
       await this.app.workspace.openLinkText(fileName, fileName, true, { state: { mode: 'preview' } })
