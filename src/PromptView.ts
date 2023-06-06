@@ -16,7 +16,7 @@ export class PromptView extends ItemView {
   }
 
   getDisplayText() {
-    return "Example view";
+    return "Learning Plugin";
   }
 
   async onload() {
