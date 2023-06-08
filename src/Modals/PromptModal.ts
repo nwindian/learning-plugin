@@ -1,11 +1,12 @@
 import { Modal, App, TAbstractFile, TFile } from 'obsidian'
 import { Notes } from 'src/Models/Notes'
-import { PromptView, LEARNING_TYPE } from 'src/PromptView';
 
 export class PromptModal extends Modal {
     private notes: Array<Notes>
     private docs: Array<any>
     private file: TAbstractFile | null
+    private stuff: any
+    private resolveFn: ((result: string | null) => void) | null = null;
 
     constructor(app: App, notes: Notes[]) {
         super(app);
@@ -30,7 +31,7 @@ export class PromptModal extends Modal {
             const lowerCase = value.toLowerCase()
             const formattedValue = lowerCase.substring(1)
 
-            if ((formattedValue.contains(input) || value.contains(input)) && !value.contains("learning-score")) {
+            if ((formattedValue.contains(input) || value.contains(input)) && !value.contains("learning-plugin-score") && !value.contains("learning-plugin-date")) {
                 if(!suggestions.contains(value.toString())) {
                     suggestions.push({tag: value.toString(), titles: doc.titles, paths: doc.paths })
                 }
@@ -38,6 +39,15 @@ export class PromptModal extends Modal {
         })
 
         return suggestions
+    }
+
+    async open(): Promise<string | null> {
+        // await this.onOpen()
+        return new Promise((resolve) => {
+            this.resolveFn = resolve;
+            super.open()
+            //this.app.workspace.addModal(this);
+          });
     }
 
     async onOpen() {
@@ -88,14 +98,18 @@ export class PromptModal extends Modal {
                 })
 
                 item.addEventListener('click', async () => {
-                    await this.app.workspace.getLeaf(false).setViewState({
-                        type: LEARNING_TYPE,
-                        active: true,
-                    });
+                    // await this.app.workspace.getLeaf(false).setViewState({
+                    //     type: LEARNING_TYPE,
+                    //     active: true,
+                    // });
 
-                    const leaf = this.app.workspace.getLeavesOfType(LEARNING_TYPE)[0]
-                    this.app.workspace.getLeaf().open(new PromptView(leaf, suggestion))
-
+                    // const leaf = this.app.workspace.getLeavesOfType(LEARNING_TYPE)[0]
+                    // this.app.workspace.getLeaf().open(new PromptView(leaf, suggestion, 0))
+                    if (this.resolveFn) {
+                        this.resolveFn(suggestion);
+                        this.resolveFn = null;
+                        this.close();
+                      }
                     this.app.workspace.onLayoutReady( () => {
                         this.close();
                     });
